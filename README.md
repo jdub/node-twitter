@@ -78,6 +78,7 @@ node-twitter also supports user and site streams:
 
 - [Jeff Waugh](http://github.com/jdub) (author)
 - [rick](http://github.com/technoweenie) (parser.js and, of course, twitter-node!)
+- [Daniel Gasienica](https://github.com/gasi) (Twitter.createFriendship)
 
 ## TODO
 
