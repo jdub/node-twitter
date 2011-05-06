@@ -41,8 +41,8 @@ stable release.
 The convenience APIs aren't finished, but you can get started with the basics:
 
     twitter.get('/statuses/show/27593302936.json', {include_entities:true},
-        function(data) {
-            sys.puts(sys.inspect(data));
+        function(err, data) {
+            console.log(err || data);
         }
     );
 
@@ -53,13 +53,13 @@ Note that all functions may be chained:
 
     twitter
         .verifyCredentials(
-            function (data) {
-                sys.puts(sys.inspect(data));
+            function(err, data) {
+                console.log(err || data);
             }
         )
         .updateStatus('Test tweet from node-twitter/' + twitter.VERSION,
-            function (data) {
-                sys.puts(sys.inspect(data));
+            function(err, data) {
+                console.log(err || data);
             }
         );
 
