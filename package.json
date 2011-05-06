@@ -1,6 +1,6 @@
 { "name": "twitter"
-, "version": "v0.1.17"
-, "description": "Asynchronous Twitter REST/stream/search client API for node.js."
+, "version": "0.2.0"
+, "description": "Asynchronous Twitter REST/stream/search client API for Node."
 , "keywords": ["twitter","streaming","oauth"]
 , "homepage": "https://github.com/jdub/node-twitter"
 , "author": "jdub"
