@@ -1,3 +1,7 @@
+# DEPRECATED
+
+This repository has been unmaintained for two years, is deprecated on `npm`, and should not be considered an authoritative source of anything. Sorry for the inconvenience.
+
 Asynchronous Twitter client API for node.js
 ===========================================
 
