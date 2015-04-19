@@ -1,86 +1,167 @@
-Twitter API client library for node.js
-======================================
+# Twitter for Node.js
 
-[node-twitter](https://github.com/jdub/node-twitter) aims to provide a complete, asynchronous client library for the Twitter API, including the REST, search and streaming endpoints. It was inspired by, and uses some code from, [@technoweenie](https://github.com/technoweenie)'s [twitter-node](https://github.com/technoweenie/twitter-node).
+An asynchronous client library for the Twitter [REST](https://dev.twitter.com/rest/public) and [Streaming](https://dev.twitter.com/streaming/overview) API's.
 
-## Requirements
+[![wercker status](https://app.wercker.com/status/624dbe8ad011852d1e01d7dc03941fc5/s/master "wercker status")](https://app.wercker.com/project/bykey/624dbe8ad011852d1e01d7dc03941fc5) [![NPM](https://nodei.co/npm/twitter.png?mini=true)](https://nodei.co/npm/twitter/)
 
-You can install node-twitter and its dependencies with npm: `npm install twitter`.
+```javascript
+var Twitter = require('twitter');
 
-- [node](http://nodejs.org/) v0.6+
-- [node-oauth](https://github.com/ciaranj/node-oauth)
-- [cookies](https://github.com/jed/cookies)
+var client = new Twitter({
+  consumer_key: '',
+  consumer_secret: '',
+  access_token_key: '',
+  access_token_secret: ''
+});
 
-## Getting started
+var params = {screen_name: 'nodejs'};
+client.get('statuses/user_timeline', params, function(error, tweets, response){
+  if (!error) {
+    console.log(tweets);
+  }
+});
+```
 
-It's early days for node-twitter, so I'm going to assume a fair amount of knowledge for the moment. Better documentation to come as we head towards a stable release.
+## Installation
 
-### Setup API (stable)
+`npm install twitter`
 
-	var util = require('util'),
-		twitter = require('twitter');
-	var twit = new twitter({
-		consumer_key: 'STATE YOUR NAME',
-		consumer_secret: 'STATE YOUR NAME',
-		access_token_key: 'STATE YOUR NAME',
-		access_token_secret: 'STATE YOUR NAME'
-	});
+## Quick Start
 
-### Basic OAuth-enticated GET/POST API (stable)
+You will need valid Twitter developer credentials in the form of a set of consumer and access tokens/keys.  You can get these [here](https://apps.twitter.com/).  Do not forgot to adjust your permissions - most POST request require write permissions.
 
-The convenience APIs aren't finished, but you can get started with the basics:
+```javascript
+var Twitter = require('twitter');
 
-	twit.get('/statuses/show/27593302936.json', {include_entities:true}, function(data) {
-		console.log(util.inspect(data));
-	});
+var client = new Twitter({
+  consumer_key: '',
+  consumer_secret: '',
+  access_token_key: '',
+  access_token_secret: ''
+});
+```
 
-### REST API (unstable, may change)
+Add your credentials accordingly.  I would use environment variables to keep your private info safe.  So something like:
 
-Note that all functions may be chained:
+```javascript
+var client = new Twitter({
+  consumer_key: process.env.TWITTER_CONSUMER_KEY,
+  consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+  access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,
+  access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
+});
+```
 
-	twit
-		.verifyCredentials(function(data) {
-			console.log(util.inspect(data));
-		})
-		.updateStatus('Test tweet from node-twitter/' + twitter.VERSION,
-			function(data) {
-				console.log(util.inspect(data));
-			}
-		);
+You now have the ability to make GET and POST requests against the API via the convenience methods.
 
-### Search API (unstable, may change)
+```javascript
+client.get(path, params, callback);
+client.post(path, params, callback);
+client.stream(path, params, callback);
+```
 
-	twit.search('nodejs OR #node', function(data) {
-		console.log(util.inspect(data));
-	});
+## REST API
 
-### Streaming API (stable)
+You simply need to pass the endpoint and parameters to one of convenience methods.  Take a look at the [documentation site](https://dev.twitter.com/rest/public) to reference available endpoints.
 
-The stream() callback receives a Stream-like EventEmitter:
+Example, lets get a [list of favorites](https://dev.twitter.com/rest/reference/get/favorites/list):
 
-	twit.stream('statuses/sample', function(stream) {
-		stream.on('data', function(data) {
-			console.log(util.inspect(data));
-		});
-	});
+```javascript
+client.get('favorites/list', function(error, tweets, response){
+  if(error) throw error;
+  console.log(tweets);  // The favorites.
+  console.log(response);  // Raw response object.
+});
+```
 
-node-twitter also supports user and site streams:
+How about an example that passes parameters?  Let's  [tweet something](https://dev.twitter.com/rest/reference/post/statuses/update):
 
-	twit.stream('user', {track:'nodejs'}, function(stream) {
-		stream.on('data', function(data) {
-			console.log(util.inspect(data));
-		});
-		// Disconnect stream after five seconds
-		setTimeout(stream.destroy, 5000);
-	});
+```javascript
+client.post('statuses/update', {status: 'I Love Twitter'},  function(error, tweet, response){
+  if(error) throw error;
+  console.log(tweet);  // Tweet body.
+  console.log(response);  // Raw response object.
+});
+```
+
+## Streaming API
+
+Using the `stream` convenience method, you to open and manipulate data via a stream piped directly from one of the streaming API's. Let's see who is talking about javascript:
+
+```javascript
+client.stream('statuses/filter', {track: 'javascript'}, function(stream) {
+  stream.on('data', function(tweet) {
+    console.log(tweet.text);
+  });
+
+  stream.on('error', function(error) {
+    throw error;
+  });
+});
+```
+
+## User authentication
+
+Get authentication url:
+```javascript
+Twitter({
+    consumer_key: Twitter_Consumer_Key,
+    consumer_secret: Twitter_Consumer_Secret,
+    callback_url: 'http://127.0.0.1:8080'
+}).getAuthUrl(function(authData) {
+    //Forward user to authData['url'];
+    //Save secret, example: authenticating[authData['oauth_token']] = authData['oauth_token_secret'];
+});
+```
+
+Get auth_token and auth_secret:
+```javascript
+//Use the authSecret that you saved before...
+Twitter({
+    consumer_key: Twitter_Consumer_Key,
+    consumer_secret: Twitter_Consumer_Secret
+}).authenticate(req.query.oauth_token, authSecret, req.query.oauth_verifier, function(authData) {
+    //authData contains access_token_key and access_token_secret
+});
+```
+
+## Examples
+
+* [Tweet](https://github.com/desmondmorris/node-twitter/tree/master/examples#tweet)
+* [Search](https://github.com/desmondmorris/node-twitter/tree/master/examples#search)
+* [Streams](https://github.com/desmondmorris/node-twitter/tree/master/examples#streams)
+* [Proxy](https://github.com/desmondmorris/node-twitter/tree/master/examples#proxy)
+* [Media](https://github.com/desmondmorris/node-twitter/tree/master/examples#media)
 
 ## Contributors
 
-- [Jeff Waugh](https://github.com/jdub) (author)
-- [@technoweenie](https://github.com/technoweenie) (parser.js and, of course, twitter-node!)
-- Lots of [wonderful helper elves](https://github.com/jdub/node-twitter/contributors) on GitHub
+Originally authored by  [@technoweenie](http://github.com/technoweenie)
+ and maintained by [@jdub](http://github.com/jdub)
 
-## TODO
+Currently maintained by [@desmondmorris](http://github.com/desmondmorris)
 
-- Complete the convenience functions, preferably generated
-- Fix ALL THE THINGS! on the GitHub [issues list](https://github.com/jdub/node-twitter/issues)
+[And we cannot forget the community](https://github.com/desmondmorris/node-twitter/graphs/contributors)
+
+
+## LICENSE
+
+node-twitter: Copyright (c) 2014 Desmond Morris
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
