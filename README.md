@@ -1,86 +1,192 @@
-Twitter API client library for node.js
-======================================
+# Twitter for Node.js
 
-[node-twitter](https://github.com/jdub/node-twitter) aims to provide a complete, asynchronous client library for the Twitter API, including the REST, search and streaming endpoints. It was inspired by, and uses some code from, [@technoweenie](https://github.com/technoweenie)'s [twitter-node](https://github.com/technoweenie/twitter-node).
+An asynchronous client library for the Twitter [REST](https://dev.twitter.com/rest/public) and [Streaming](https://dev.twitter.com/streaming/overview) API's.
 
-## Requirements
+[![Build Status](https://travis-ci.org/desmondmorris/node-twitter.svg?branch=master)](https://travis-ci.org/desmondmorris/node-twitter)
+ [![NPM](https://nodei.co/npm/twitter.png?mini=true)](https://nodei.co/npm/twitter/)
 
-You can install node-twitter and its dependencies with npm: `npm install twitter`.
+```javascript
+var Twitter = require('twitter');
 
-- [node](http://nodejs.org/) v0.6+
-- [node-oauth](https://github.com/ciaranj/node-oauth)
-- [cookies](https://github.com/jed/cookies)
+var client = new Twitter({
+  consumer_key: '',
+  consumer_secret: '',
+  access_token_key: '',
+  access_token_secret: ''
+});
 
-## Getting started
+var params = {screen_name: 'nodejs'};
+client.get('statuses/user_timeline', params, function(error, tweets, response) {
+  if (!error) {
+    console.log(tweets);
+  }
+});
+```
 
-It's early days for node-twitter, so I'm going to assume a fair amount of knowledge for the moment. Better documentation to come as we head towards a stable release.
+## Installation
 
-### Setup API (stable)
+`npm install twitter`
 
-	var util = require('util'),
-		twitter = require('twitter');
-	var twit = new twitter({
-		consumer_key: 'STATE YOUR NAME',
-		consumer_secret: 'STATE YOUR NAME',
-		access_token_key: 'STATE YOUR NAME',
-		access_token_secret: 'STATE YOUR NAME'
-	});
+## Quick Start
 
-### Basic OAuth-enticated GET/POST API (stable)
+You will need valid Twitter developer credentials in the form of a set of consumer and access tokens/keys.  You can get these [here](https://apps.twitter.com/).  Do not forgot to adjust your permissions - most POST request require write permissions.
 
-The convenience APIs aren't finished, but you can get started with the basics:
+```javascript
+var Twitter = require('twitter');
+```
 
-	twit.get('/statuses/show/27593302936.json', {include_entities:true}, function(data) {
-		console.log(util.inspect(data));
-	});
+## For User based authentication:
 
-### REST API (unstable, may change)
+```javascript
+var client = new Twitter({
+  consumer_key: '',
+  consumer_secret: '',
+  access_token_key: '',
+  access_token_secret: ''
+});
+```
 
-Note that all functions may be chained:
+Add your credentials accordingly.  I would use environment variables to keep your private info safe.  So something like:
 
-	twit
-		.verifyCredentials(function(data) {
-			console.log(util.inspect(data));
-		})
-		.updateStatus('Test tweet from node-twitter/' + twitter.VERSION,
-			function(data) {
-				console.log(util.inspect(data));
-			}
-		);
+```javascript
+var client = new Twitter({
+  consumer_key: process.env.TWITTER_CONSUMER_KEY,
+  consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+  access_token_key: process.env.TWITTER_ACCESS_TOKEN_KEY,
+  access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET
+});
+```
+## For Application Only based authentication:
 
-### Search API (unstable, may change)
+You will need to fetch a bearer token from Twitter as documented [Here](https://dev.twitter.com/oauth/application-only), once you have it you can use it as follows.
 
-	twit.search('nodejs OR #node', function(data) {
-		console.log(util.inspect(data));
-	});
+```javascript
+var client = new Twitter({
+  consumer_key: '',
+  consumer_secret: '',
+  bearer_token: ''
+});
+```
 
-### Streaming API (stable)
+Add your credentials accordingly.  I would use environment variables to keep your private info safe.  So something like:
 
-The stream() callback receives a Stream-like EventEmitter:
+```javascript
+var client = new Twitter({
+  consumer_key: process.env.TWITTER_CONSUMER_KEY,
+  consumer_secret: process.env.TWITTER_CONSUMER_SECRET,
+  bearer_token: process.env.TWITTER_BEARER_TOKEN
+});
+```
 
-	twit.stream('statuses/sample', function(stream) {
-		stream.on('data', function(data) {
-			console.log(util.inspect(data));
-		});
-	});
+NB - You will not have access to all endpoints whilst using Application Only authentication, but you will have access to higher API limits.
 
-node-twitter also supports user and site streams:
+## Requests
 
-	twit.stream('user', {track:'nodejs'}, function(stream) {
-		stream.on('data', function(data) {
-			console.log(util.inspect(data));
-		});
-		// Disconnect stream after five seconds
-		setTimeout(stream.destroy, 5000);
-	});
+You now have the ability to make GET and POST requests against the API via the convenience methods.
+
+```javascript
+client.get(path, params, callback);
+client.post(path, params, callback);
+client.stream(path, params, callback);
+```
+
+## REST API
+
+You simply need to pass the endpoint and parameters to one of convenience methods.  Take a look at the [documentation site](https://dev.twitter.com/rest/public) to reference available endpoints.
+
+Example, lets get a [list of favorites](https://dev.twitter.com/rest/reference/get/favorites/list):
+
+```javascript
+client.get('favorites/list', function(error, tweets, response) {
+  if(error) throw error;
+  console.log(tweets);  // The favorites.
+  console.log(response);  // Raw response object.
+});
+```
+
+How about an example that passes parameters?  Let's  [tweet something](https://dev.twitter.com/rest/reference/post/statuses/update):
+
+```javascript
+client.post('statuses/update', {status: 'I Love Twitter'},  function(error, tweet, response) {
+  if(error) throw error;
+  console.log(tweet);  // Tweet body.
+  console.log(response);  // Raw response object.
+});
+```
+
+### Promises
+
+The REST API convenience methods will also return Promises if:
+
+1.  A callback is omitted
+2.  Promise's are available.
+
+If those two conditions are met, the above example becomes:
+
+```javascript
+client.post('statuses/update', {status: 'I Love Twitter'})
+  .then(function (tweet) {
+    console.log(tweet);
+  })
+  .catch(function (error) {
+    throw error;
+  })
+```
+
+Note, the raw `response` object returned by the Request module is not passed through
+the fulfilled promise.  If you require this, please use the callback pattern.
+
+## Streaming API
+
+Using the `stream` convenience method, you to open and manipulate data via a stream piped directly from one of the streaming API's. Let's see who is talking about javascript:
+
+```javascript
+var stream = client.stream('statuses/filter', {track: 'javascript'});
+stream.on('data', function(event) {
+  console.log(event && event.text);
+});
+
+stream.on('error', function(error) {
+  throw error;
+});
+
+// You can also get the stream in a callback if you prefer.
+client.stream('statuses/filter', {track: 'javascript'}, function(stream) {
+  stream.on('data', function(event) {
+    console.log(event && event.text);
+  });
+
+  stream.on('error', function(error) {
+    throw error;
+  });
+});
+```
+
+**Note** twitter stream several types of events, see [the docs](https://dev.twitter.com/streaming/overview/messages-types) for more info. There is no canonical way of detecting tweets versus other messages, but some users have had success with the following strategy.
+
+```javascript
+_ = require('lodash')
+const isTweet = _.conforms({
+  contributors: _.isObject,
+  id_str: _.isString,
+  text: _.isString,
+})
+```
+
+## Examples
+
+* [Tweet](https://github.com/desmondmorris/node-twitter/tree/master/examples#tweet)
+* [Search](https://github.com/desmondmorris/node-twitter/tree/master/examples#search)
+* [Streams](https://github.com/desmondmorris/node-twitter/tree/master/examples#streams)
+* [Proxy](https://github.com/desmondmorris/node-twitter/tree/master/examples#proxy)
+* [Media](https://github.com/desmondmorris/node-twitter/tree/master/examples#media)
+* [Chunked Media](https://github.com/desmondmorris/node-twitter/tree/master/examples#chunked-media)
 
 ## Contributors
 
-- [Jeff Waugh](https://github.com/jdub) (author)
-- [@technoweenie](https://github.com/technoweenie) (parser.js and, of course, twitter-node!)
-- Lots of [wonderful helper elves](https://github.com/jdub/node-twitter/contributors) on GitHub
+Originally authored by  [@technoweenie](http://github.com/technoweenie)
+ and maintained by [@jdub](http://github.com/jdub)
 
-## TODO
+Currently maintained by [@desmondmorris](http://github.com/desmondmorris)
 
-- Complete the convenience functions, preferably generated
-- Fix ALL THE THINGS! on the GitHub [issues list](https://github.com/jdub/node-twitter/issues)
+[And we cannot forget the community](https://github.com/desmondmorris/node-twitter/graphs/contributors)

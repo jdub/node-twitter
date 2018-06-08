@@ -1,22 +1,31 @@
-{ "name": "twitter"
-, "version": "v0.1.18"
-, "description": "Twitter API client library for node.js"
-, "keywords": ["twitter","streaming","oauth"]
-, "homepage": "https://github.com/jdub/node-twitter"
-, "author": "jdub"
-, "licenses":
-  [ { "type": "MIT"
-    , "url": "http://github.com/jdub/node-twitter/raw/master/LICENSE"
-  } ]
-, "repository":
-  { "type": "git"
-  , "url": "http://github.com/jdub/node-twitter.git"
-  }
-, "dependencies":
-  { "oauth": ">=0.8.4"
-  , "cookies": ">=0.1.6"
-  , "keygrip": ">=0.1.7"
-  }
-, "engines": ["node >=0.2.0"]
-, "main": "./lib/twitter"
+{
+  "name": "twitter",
+  "version": "1.7.1",
+  "description": "Twitter API client library for node.js",
+  "license": "MIT",
+  "keywords": [
+    "twitter",
+    "streaming",
+    "oauth"
+  ],
+  "homepage": "https://github.com/desmondmorris/node-twitter",
+  "author": "Desmond Morris <hi@desmondmorris.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/desmondmorris/node-twitter"
+  },
+  "scripts": {
+    "test": "npm run lint && mocha",
+    "lint": "./node_modules/.bin/eslint test/*.js lib/*.js"
+  },
+  "dependencies": {
+    "deep-extend": "^0.5.0",
+    "request": "^2.72.0"
+  },
+  "devDependencies": {
+    "eslint": "^3.12.0",
+    "mocha": "^3.2.0",
+    "nock": "^9.0.2"
+  },
+  "main": "./lib/twitter"
 }
